@@ -24,6 +24,15 @@ class BuildPile:
     def __len__(self):
         return len(self.cards)
 
+    @property
+    def top_card(self):
+        return self.cards[-1] if len(self.cards) else 0
+
+    @property
+    def accepts(self):
+        # todo: deal with skip-bo
+        return self.top_card + 1
+
     def pop(self):
         return self.cards.pop()
 
@@ -58,7 +67,7 @@ class SkipBoGame:
 
 class Player:
     def __init__(self):
-        self.cards_in_hand = []
+        self.hand = []
         self.stock = BuildPile()
         self.discard_piles = [BuildPile()] * 4
 
@@ -66,15 +75,25 @@ class Player:
         self.stock.push(n)
 
     def play_round(self, game):
-        self.cards_in_hand.extend(game.stock.pop(5 - len(self.cards_in_hand)))
+        self.refill_hand(game)
 
-        # todo: add moves
+        # todo: add moves AND/OR make human interface
         # add card from stock to field
+        for field in game.play_field:
+            if self.stock.top_card == field.accepts:
+                field.push(self.stock.pop())
         # add card from hand to field
         # when hand is empty, take 5 new cards
         # when build_pile is full, add to discard_stock
+        for card in self.hand:
+            for field in game.play_field:
+                if card == field.accepts:
+                    field.push(card)
 
-        self.discard_card(self.cards_in_hand.pop())
+        self.discard_card(self.hand.pop())
+
+    def refill_hand(self, game):
+        self.hand.extend(game.stock.pop(5 - len(self.hand)))
 
     def discard_card(self, card):
         # todo: add logic
@@ -88,5 +107,5 @@ if __name__ == "__main__":
     main_game = SkipBoGame()
     main_game.start()
 
-    while main_game.is_game_finished():
+    while not main_game.is_game_finished():
         main_game.play_round()

@@ -34,5 +34,5 @@ def test_push_and_pop_to_build_pile():
 def test_player_takes_right_amount_from_stock():
     game = SkipBoGame()
     player = Player()
-    player.play_round(game)
-    assert len(player.cards_in_hand) == 5
+    player.refill_hand(game)
+    assert len(player.hand) == 5
