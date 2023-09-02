@@ -36,3 +36,9 @@ def test_player_takes_right_amount_from_stock():
     player = Player()
     player.refill_hand(game)
     assert len(player.hand) == 5
+
+
+def test_build_pile_shows_correct_data():
+    build_pile = BuildPile()
+    assert build_pile.top_card == 0
+    assert build_pile.accepts == 1
