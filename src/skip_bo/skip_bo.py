@@ -181,10 +181,6 @@ class Player:
     def __str__(self):
         return f"Player {self.name}"
 
-    @property
-    def number_of_hand_cards(self):
-        return sum([1 for c in self.hand if not c.is_empty()])
-
     def deal_stock_card(self, card):
         self.stock.deal_push(card)
 
@@ -218,6 +214,9 @@ class Player:
         else:  # no break
             print("player hand was empty")
 
+    def make_move(self, game, strategy, move_idx):
+        strategy(self, game, move_idx)
+
     def discard_card(self, card):
         # todo: add logic
         self.discard_piles[0].push(card)
@@ -231,10 +230,12 @@ class ObservationSpace:
         pass
 
     def space(self):
-        # possible moves:
-        # top card from stock to one of the fields (4 moves)
-        # each card from hand to one of the field (5*4 moves)
-        # each card from hand to one of the discard piles (5*4 moves)
+        # possible observations
+        # 0. top card to player stock
+        # 1. all cards in the hand of player
+        # 2. all top cards of play field
+        # 3. top (3) cards of player own discard pile
+        # 3b. top (3) cards of opponent discard pile (advanced, player number dependent)
         return self.hand_cards_to_field(range(4), range(5)),
 
     @staticmethod
@@ -246,8 +247,14 @@ class ActionMask:
     ...
 
 
-class ActionSpace:
-    ...
+def get_action_space(game, player):
+    # possible moves:
+    # top card from stock to one of the fields (4 moves)
+    # each card from hand to one of the field (5*4 moves)
+    # each card from hand to one of the discard piles (5*4 moves)
+    actions = {
+
+    }
 
 
 def display(game):
@@ -274,7 +281,7 @@ if __name__ == "__main__":
     main_game = SkipBoGame(number_of_players=2)
     main_game.start()
 
-    for nr in range(500):
+    for nr in range(30):
         print(f"Round    : {nr:>3}")
         display(main_game)
         main_game.play_round()

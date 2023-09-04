@@ -56,13 +56,7 @@ def test_push_and_pop_to_build_pile():
 
 def test_player_accepts_just_enough_cards():
     player = Player()
-    assert player.number_of_hand_cards == 0
-
-    [player.deal_hand_card(1) for _ in range(3)]
-    assert player.number_of_hand_cards == 3
-
-    [player.deal_hand_card(1) for _ in range(2)]
-    assert player.number_of_hand_cards == 5
+    [player.deal_hand_card("X") for _ in range(5)]
 
     with pytest.raises(IllegalMove):
         player.deal_hand_card(1)
