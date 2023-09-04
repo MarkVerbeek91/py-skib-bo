@@ -13,7 +13,11 @@ def raw_env():
 
 
 class ActionMask:
-    ...
+    def __init__(self, game):
+        self._game = game
+
+    def legal_moves(self):
+        return []
 
 
 def get_action_space(game, player):

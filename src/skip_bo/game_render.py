@@ -1,4 +1,4 @@
-def display(game):
+def display_ascii(game):
     for player in game.players:
         print_player_status(player)
 
