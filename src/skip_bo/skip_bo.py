@@ -1,11 +1,23 @@
+import dataclasses
 import itertools
 from random import Random
+
+
+@dataclasses.dataclass
+class GameConfigs:
+    max_card_value = 12
+    nr_hand_cards = 5
+    nr_play_field = 4
+    nr_discard_piles = 4
+
+    # debug rules
+    max_discard_pile_size = 6
 
 
 class GameStock:
 
     def __init__(self):
-        self.cards = [i + 1 for i in range(12)] * 12 + ['X'] * 12
+        self.cards = [i + 1 for i in range(GameConfigs.max_card_value)] * 12 + ['X'] * 12
 
     def __len__(self):
         return len(self.cards)
@@ -60,7 +72,10 @@ class DiscardPile:
         return [self.cards.pop() for _ in range(len(self.cards))]
 
     def push(self, card):
-        self.cards.append(card)
+        if len(self.cards) < GameConfigs.max_discard_pile_size:
+            self.cards.append(card)
+        else:
+            raise IllegalMove("Artificial rule: keep discard piles small.")
 
     def observe(self):
         return self.cards[-3]
@@ -89,7 +104,7 @@ class BuildPile:
         return self.cards.pop()
 
     def push(self, card):
-        if card in {self.accepts, "X"} and self.top_card < 12:
+        if card in {self.accepts, "X"} and self.top_card < GameConfigs.max_card_value:
             self.cards.append(card)
         else:
             raise IllegalMove("Not allowed to push this card.")
@@ -128,7 +143,7 @@ class SkipBoGame:
     def __init__(self, number_of_players=2):
         self.stock = GameStock()
         self.discard_stock = DiscardPile()
-        self.play_fields = [BuildPile() for _ in range(4)]
+        self.play_fields = [BuildPile() for _ in range(GameConfigs.nr_play_field)]
         self.players = [Player(str(i)) for i in range(number_of_players)]
 
     def __str__(self):
@@ -167,16 +182,16 @@ class SkipBoGame:
 
     def clear_play_fields(self):
         for field in self.play_fields:
-            if field.top_card == 12:
-                [self.discard_stock.push(field.pop()) for _ in range(12)]
+            if field.top_card == GameConfigs.max_card_value:
+                [self.discard_stock.push(field.pop()) for _ in range(GameConfigs.max_card_value)]
 
 
 class Player:
     def __init__(self, name: str = "0"):
         self.name = name
-        self.hand = [HandCard() for _ in range(5)]
+        self.hand = [HandCard() for _ in range(GameConfigs.nr_hand_cards)]
         self.stock = PlayerStock()
-        self.discard_piles = [DiscardPile() for _ in range(4)]
+        self.discard_piles = [DiscardPile() for _ in range(GameConfigs.nr_discard_piles)]
 
     def __str__(self):
         return f"Player {self.name}"
@@ -219,70 +234,13 @@ class Player:
 
     def discard_card(self, card):
         # todo: add logic
-        self.discard_piles[0].push(card)
+        idx = Random().randint(1, GameConfigs.nr_discard_piles)
+        self.discard_piles[idx-1].push(card)
 
     def is_finished(self):
         return len(self.stock) == 0
 
 
-class ObservationSpace:
-    def __init__(self):
-        pass
-
-    def space(self):
-        # possible observations
-        # 0. top card to player stock
-        # 1. all cards in the hand of player
-        # 2. all top cards of play field
-        # 3. top (3) cards of player own discard pile
-        # 3b. top (3) cards of opponent discard pile (advanced, player number dependent)
-        return self.hand_cards_to_field(range(4), range(5)),
-
-    @staticmethod
-    def hand_cards_to_field(h_idx, f_idx) -> list:
-        return list(map(lambda x: (x[0], x[1]), itertools.product(h_idx, f_idx)))
-
-
-class ActionMask:
-    ...
-
-
-def get_action_space(game, player):
-    # possible moves:
-    # top card from stock to one of the fields (4 moves)
-    # each card from hand to one of the field (5*4 moves)
-    # each card from hand to one of the discard piles (5*4 moves)
-    actions = {
-
-    }
-
-
-def display(game):
-    for player in game.players:
-        print_player_status(player)
-
-    h = " ".join([f"[{str(x):>2}]" for x in game.play_fields])
-    print(f"field    : {h}")
-    print("")
-
-
-def print_player_status(player):
-    name = player.name
-
-    h = " ".join([f"[{str(x):>2}]" for x in player.hand])
-    print(f"player {name} : {h}")
-    h = player.discard_piles
-    h = " ".join([f"[{str(x):>2}]" for x in h])
-    s = player.stock.top_card
-    print(f"         : {h}      [{str(s):>2}]")
-
-
 if __name__ == "__main__":
     main_game = SkipBoGame(number_of_players=2)
     main_game.start()
-
-    for nr in range(30):
-        print(f"Round    : {nr:>3}")
-        display(main_game)
-        main_game.play_round()
-        display(main_game)

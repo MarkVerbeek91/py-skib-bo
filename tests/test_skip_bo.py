@@ -1,6 +1,6 @@
 import pytest
 
-from skip_bo.skip_bo import SkipBoGame, GameStock, BuildPile, Player, ObservationSpace, IllegalMove
+from skip_bo.skip_bo import SkipBoGame, GameStock, BuildPile, Player, IllegalMove
 
 
 def test_create_a_game():
