@@ -1,5 +1,4 @@
 import itertools
-import time
 from random import Random
 
 
@@ -25,6 +24,48 @@ class GameStock:
         self.shuffle()
 
 
+class PlayerStock:
+    def __init__(self):
+        self.cards = []
+
+    def __str__(self):
+        return f"Player stock with {len(self.cards)} cards."
+
+    def __len__(self):
+        return len(self.cards)
+
+    @property
+    def top_card(self):
+        return self.cards[-1]
+
+    def pop(self):
+        return self.cards.pop()
+
+    def deal_push(self, card):
+        self.cards.append(card)
+
+
+class DiscardPile:
+    def __init__(self):
+        self.cards = []
+
+    def __str__(self):
+        return f"{self.top_card:>2}" if self.top_card else "  "
+
+    @property
+    def top_card(self):
+        return self.cards[-1] if len(self.cards) else 0
+
+    def pop_all(self):
+        return [self.cards.pop() for _ in range(len(self.cards))]
+
+    def push(self, card):
+        self.cards.append(card)
+
+    def observe(self):
+        return self.cards[-3]
+
+
 class BuildPile:
 
     def __init__(self):
@@ -38,19 +79,20 @@ class BuildPile:
 
     @property
     def top_card(self):
-        return self.cards[-1] if len(self.cards) else 0
+        return len(self.cards)
 
     @property
     def accepts(self):
-        # todo: deal with skip-bo
         return self.top_card + 1
 
     def pop(self):
         return self.cards.pop()
 
     def push(self, card):
-        # todo add error checking
-        return self.cards.append(card)
+        if card in {self.accepts, "X"} and self.top_card < 12:
+            self.cards.append(card)
+        else:
+            raise IllegalMove("Not allowed to push this card.")
 
 
 class IllegalMove(Exception):
@@ -63,6 +105,10 @@ class HandCard:
 
     def __str__(self):
         return f"{self._number:>2}" if self._number else "  "
+
+    @property
+    def value(self):
+        return self._number
 
     def is_empty(self):
         return self._number == 0
@@ -81,7 +127,7 @@ class HandCard:
 class SkipBoGame:
     def __init__(self, number_of_players=2):
         self.stock = GameStock()
-        self.discard_stock = BuildPile()
+        self.discard_stock = DiscardPile()
         self.play_fields = [BuildPile() for _ in range(4)]
         self.players = [Player(str(i)) for i in range(number_of_players)]
 
@@ -102,6 +148,8 @@ class SkipBoGame:
             self.deal_player_cards(player)
             player.play_round(self)
 
+        self.clear_play_fields()
+
     def is_game_finished(self):
         return any([p.is_finished() for p in self.players])
 
@@ -111,16 +159,24 @@ class SkipBoGame:
 
     def deal_player_cards(self, player):
         for card in player.hand:
+            if len(self.stock):
+                self.refill_stock()
+
             if card.is_empty():
                 card.push(self.stock.pop())
+
+    def clear_play_fields(self):
+        for field in self.play_fields:
+            if field.top_card == 12:
+                [self.discard_stock.push(field.pop()) for _ in range(12)]
 
 
 class Player:
     def __init__(self, name: str = "0"):
         self.name = name
         self.hand = [HandCard() for _ in range(5)]
-        self.stock = BuildPile()
-        self.discard_piles = [BuildPile() for _ in range(4)]
+        self.stock = PlayerStock()
+        self.discard_piles = [DiscardPile() for _ in range(4)]
 
     def __str__(self):
         return f"Player {self.name}"
@@ -130,7 +186,7 @@ class Player:
         return sum([1 for c in self.hand if not c.is_empty()])
 
     def deal_stock_card(self, card):
-        self.stock.push(card)
+        self.stock.deal_push(card)
 
     def deal_hand_card(self, card):
         for hand_card in self.hand:
@@ -144,11 +200,12 @@ class Player:
         # todo: add moves AND/OR make human interface
         # 1. add card from stock to field
         for field in game.play_fields:
-            if self.stock.top_card == field.accepts:
+            if self.stock.top_card in {field.accepts, "X"}:
                 field.push(self.stock.pop())
+
         # 2. add card from hand to field
         for card, field in itertools.product(self.hand, game.play_fields):
-            if card == field.accepts:
+            if card.value in {field.accepts, "X"}:
                 field.push(card.pop())
 
         # 3. when hand is empty, take 5 new cards
@@ -198,7 +255,7 @@ def display(game):
         print_player_status(player)
 
     h = " ".join([f"[{str(x):>2}]" for x in game.play_fields])
-    print(f"desk     : {h}")
+    print(f"field    : {h}")
     print("")
 
 
@@ -214,20 +271,11 @@ def print_player_status(player):
 
 
 if __name__ == "__main__":
-    main_game = SkipBoGame()
+    main_game = SkipBoGame(number_of_players=2)
     main_game.start()
 
-    # while not main_game.is_game_finished():
-    #     main_game.play_round()
-    #     display(main_game)
-    #     time.sleep(0.25)
-
-    for nr in range(3):
+    for nr in range(500):
         print(f"Round    : {nr:>3}")
-        # print("Before:")
-        # display(main_game)
-        main_game.play_round()
-        # print("After:")
         display(main_game)
-
-        # time.sleep(0.25)
+        main_game.play_round()
+        display(main_game)
