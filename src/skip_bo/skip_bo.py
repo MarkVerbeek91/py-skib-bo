@@ -1,3 +1,4 @@
+import itertools
 import time
 from random import Random
 
@@ -13,8 +14,8 @@ class GameStock:
     def __str__(self):
         return f"Stock with {len(self)} cards"
 
-    def pop(self, n=1):
-        return [self.cards.pop() for _ in range(n)]
+    def pop(self):
+        return self.cards.pop()
 
     def shuffle(self, seed="31415"):
         Random(seed).shuffle(self.cards)
@@ -33,7 +34,7 @@ class BuildPile:
         return len(self.cards)
 
     def __str__(self):
-        return str(self.top_card)
+        return f"{self.top_card:>2}" if self.top_card else "  "
 
     @property
     def top_card(self):
@@ -50,6 +51,31 @@ class BuildPile:
     def push(self, card):
         # todo add error checking
         return self.cards.append(card)
+
+
+class IllegalMove(Exception):
+    pass
+
+
+class HandCard:
+    def __init__(self):
+        self._number = 0
+
+    def __str__(self):
+        return f"{self._number:>2}" if self._number else "  "
+
+    def is_empty(self):
+        return self._number == 0
+
+    def pop(self):
+        n = self._number
+        self._number = 0
+        return n
+
+    def push(self, n):
+        if self._number:
+            raise IllegalMove()
+        self._number = n
 
 
 class SkipBoGame:
@@ -73,6 +99,7 @@ class SkipBoGame:
 
     def play_round(self):
         for player in self.players:
+            self.deal_player_cards(player)
             player.play_round(self)
 
     def is_game_finished(self):
@@ -82,56 +109,57 @@ class SkipBoGame:
         self.stock.refill(self.discard_stock.cards)
         self.discard_stock.cards = []
 
+    def deal_player_cards(self, player):
+        for card in player.hand:
+            if card.is_empty():
+                card.push(self.stock.pop())
+
 
 class Player:
     def __init__(self, name: str = "0"):
         self.name = name
-        self.hand = []
+        self.hand = [HandCard() for _ in range(5)]
         self.stock = BuildPile()
         self.discard_piles = [BuildPile() for _ in range(4)]
 
     def __str__(self):
         return f"Player {self.name}"
 
-    def deal_stock_card(self, n: list):
-        self.stock.push(*n)
+    @property
+    def number_of_hand_cards(self):
+        return sum([1 for c in self.hand if not c.is_empty()])
+
+    def deal_stock_card(self, card):
+        self.stock.push(card)
+
+    def deal_hand_card(self, card):
+        for hand_card in self.hand:
+            if hand_card.is_empty():
+                hand_card.push(card)
+                break
+        else:  # no break
+            raise IllegalMove("Dealt card to many")
 
     def play_round(self, game):
-        self.refill_hand(game)
-
         # todo: add moves AND/OR make human interface
         # 1. add card from stock to field
         for field in game.play_fields:
             if self.stock.top_card == field.accepts:
                 field.push(self.stock.pop())
         # 2. add card from hand to field
-        for i, card in enumerate(self.hand):
-            for field in game.play_fields:
-                if card == field.accepts:
-                    field.push(card)
-                    self.hand[i] = None
-                    card = None
-        self.hand = [c for c in self.hand if c is not None]
-
-        for i, card in enumerate(self.hand):
-            for field in game.play_fields:
-                if card == field.accepts:
-                    field.push(card)
-                    self.hand[i] = None
-                    card = None
-        self.hand = [c for c in self.hand if c is not None]
+        for card, field in itertools.product(self.hand, game.play_fields):
+            if card == field.accepts:
+                field.push(card.pop())
 
         # 3. when hand is empty, take 5 new cards
         # when build_pile is full, add to discard_stock
 
-        self.discard_card(self.hand.pop())
-
-    def refill_hand(self, game):
-        try:
-            self.hand.extend(game.stock.pop(5 - len(self.hand)))
-        except IndexError:
-            game.refill_stock()
-            self.hand.extend(game.stock.pop(5 - len(self.hand)))
+        for card in self.hand:
+            if not card.is_empty():
+                self.discard_card(card.pop())
+                break
+        else:  # no break
+            print("player hand was empty")
 
     def discard_card(self, card):
         # todo: add logic
@@ -139,6 +167,30 @@ class Player:
 
     def is_finished(self):
         return len(self.stock) == 0
+
+
+class ObservationSpace:
+    def __init__(self):
+        pass
+
+    def space(self):
+        # possible moves:
+        # top card from stock to one of the fields (4 moves)
+        # each card from hand to one of the field (5*4 moves)
+        # each card from hand to one of the discard piles (5*4 moves)
+        return self.hand_cards_to_field(range(4), range(5)),
+
+    @staticmethod
+    def hand_cards_to_field(h_idx, f_idx) -> list:
+        return list(map(lambda x: (x[0], x[1]), itertools.product(h_idx, f_idx)))
+
+
+class ActionMask:
+    ...
+
+
+class ActionSpace:
+    ...
 
 
 def display(game):
@@ -152,9 +204,8 @@ def display(game):
 
 def print_player_status(player):
     name = player.name
-    h = player.hand
-    h = h + ["  "] * (5 - len(h))
-    h = " ".join([f"[{x:>2}]" for x in h])
+
+    h = " ".join([f"[{str(x):>2}]" for x in player.hand])
     print(f"player {name} : {h}")
     h = player.discard_piles
     h = " ".join([f"[{str(x):>2}]" for x in h])
@@ -171,7 +222,7 @@ if __name__ == "__main__":
     #     display(main_game)
     #     time.sleep(0.25)
 
-    for nr in range(50):
+    for nr in range(3):
         print(f"Round    : {nr:>3}")
         # print("Before:")
         # display(main_game)
