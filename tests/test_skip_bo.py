@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 from skip_bo.skip_bo import SkipBoGame, GameStock, BuildPile, Player, IllegalMove
@@ -67,6 +68,67 @@ def test_build_pile_shows_correct_data():
     assert build_pile.top_card == 0
     assert build_pile.accepts == 1
 
-# def test_observation_space():
-#     observation_space = ObservationSpace()
-#     assert observation_space.space() == []
+
+def test_legal_moves():
+    game = SkipBoGame(number_of_players=2)
+    game.start()
+
+    player = game.players[0]
+
+    assert sum(game.legal_moves(player)) == 20
+
+
+def test_legal_moves_for_set_up_field():
+    game = SkipBoGame(number_of_players=2)
+    player_01 = Player()
+    player_02 = Player()
+
+    game.players =[player_01, player_02]
+
+    player_01.deal_stock_card(3)
+    player_02.deal_stock_card(3)
+
+    player_01.deal_hand_card(1)
+    map(player_01.deal_hand_card, [12]*4)
+
+    player_02.deal_hand_card(2)
+    map(player_02.deal_hand_card, [12] * 4)
+
+    player = game.players[0]
+
+    assert sum(game.legal_moves(player)) == 24
+
+
+def test_legal_moves_for_set_up_field_02():
+    game = SkipBoGame(number_of_players=2)
+    player_01 = Player()
+    player_02 = Player()
+
+    game.players =[player_01, player_02]
+
+    player_01.deal_stock_card("X")
+    player_02.deal_stock_card(3)
+
+    player_01.deal_hand_card(1)
+    map(player_01.deal_hand_card, [12]*4)
+
+    player_02.deal_hand_card(2)
+    map(player_02.deal_hand_card, [12] * 4)
+
+    player = game.players[0]
+
+    assert sum(game.legal_moves(player)) == 28
+
+
+def test_game_makes_as_step():
+    game = SkipBoGame(number_of_players=2)
+    player_01 = Player()
+
+    game.players = [player_01]
+
+    player_01.deal_stock_card(1)
+
+    player_id = 0
+    game.step(player_id, 0)
+
+    assert game.field_cards == [1, 0, 0, 0]
