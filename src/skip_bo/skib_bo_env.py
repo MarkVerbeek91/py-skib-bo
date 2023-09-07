@@ -18,7 +18,7 @@ def env(**kwargs):
     return env
 
 
-class raw_env(AECEnv, EzPickle):
+class raw_env(AECEnv, EzPickle):  # noqa: follow pettingzoo naming convention
     metadata = {
         "render_modes": ["ascii"],
         "name": "skib_bo_v1",
@@ -28,13 +28,14 @@ class raw_env(AECEnv, EzPickle):
 
     def __init__(self,
                  render_mode: str | None = None,
-                 number_of_players: int = 2):
+                 number_of_players: int = 2,
+                 ):
         EzPickle.__init__(self, render_mode)
         super().__init__()
 
         self.render_mode = render_mode
 
-        self.game = SkipBoGame()
+        self.game = SkipBoGame(number_of_players)
 
         self.agents = [f"player_{i}" for i in range(number_of_players)]
         self.possible_agents = self.agents[:]
@@ -44,7 +45,7 @@ class raw_env(AECEnv, EzPickle):
             i: spaces.Dict(
                 {
                     "observation": spaces.Box(
-                        low=0, high=1, shape=(44, 2), dtype=np.int8,
+                        low=0, high=1, shape=(14,), dtype=np.int8,
                     ),
                     "action_mask": spaces.Box(
                         low=0, high=1, shape=(44, 2), dtype=np.int8,
@@ -55,12 +56,14 @@ class raw_env(AECEnv, EzPickle):
         }
 
     def observe(self, agent):
-        # self.game.
+        player_index = self.possible_agents.index(agent)
 
+        observation = self.game.observe(player_index)
+        action_mask = np.array([])
 
         return {
-            "observation": None,
-            "action_mask": None
+            "observation": observation,
+            "action_mask": action_mask,
         }
 
     def observation_space(self, agent):

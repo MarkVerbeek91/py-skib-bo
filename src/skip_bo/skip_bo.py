@@ -34,18 +34,92 @@ class SkipBoGame:
         self.stock.shuffle()
         self.deal_cards()
 
+    def observe(self, agent):
+        """
+
+        1. top stock card
+        2. cards on play fields
+        3. cards in player hand
+        4. cards on top of discard pile (extension possible for top 3, 4 or 6)
+
+        :param agent:
+        :return:
+        """
+        # current_index = self.
+        observation = np.array(
+          [self.players[agent].stock_card] +
+          self.field_cards +
+          self.players[agent].hand_cards +
+          self.players[agent].discard_cards
+        )
+
+        return observation
+
+    def step(self, player_id, action_id):
+        ...
+        # player plays stock card
+        # player plays hand card
+        # player discards card
+        moves_list = [
+            lambda game, player: player.play_stock_card(game, 0),
+            lambda game, player: player.play_stock_card(game, 1),
+            lambda game, player: player.play_stock_card(game, 2),
+            lambda game, player: player.play_stock_card(game, 3),
+            lambda game, player: player.play_hand_card(game, 0, 0),
+            lambda game, player: player.play_hand_card(game, 0, 1),
+            lambda game, player: player.play_hand_card(game, 0, 2),
+            lambda game, player: player.play_hand_card(game, 0, 3),
+            lambda game, player: player.play_hand_card(game, 1, 0),
+            lambda game, player: player.play_hand_card(game, 1, 1),
+            lambda game, player: player.play_hand_card(game, 1, 2),
+            lambda game, player: player.play_hand_card(game, 1, 3),
+            lambda game, player: player.play_hand_card(game, 2, 0),
+            lambda game, player: player.play_hand_card(game, 2, 1),
+            lambda game, player: player.play_hand_card(game, 2, 2),
+            lambda game, player: player.play_hand_card(game, 2, 3),
+            lambda game, player: player.play_hand_card(game, 3, 0),
+            lambda game, player: player.play_hand_card(game, 3, 1),
+            lambda game, player: player.play_hand_card(game, 3, 2),
+            lambda game, player: player.play_hand_card(game, 3, 3),
+            lambda game, player: player.play_hand_card(game, 4, 0),
+            lambda game, player: player.play_hand_card(game, 4, 1),
+            lambda game, player: player.play_hand_card(game, 4, 2),
+            lambda game, player: player.play_hand_card(game, 4, 3),
+            lambda _, player: player.discard_card(0, 0),
+            lambda _, player: player.discard_card(0, 1),
+            lambda _, player: player.discard_card(0, 2),
+            lambda _, player: player.discard_card(0, 3),
+            lambda _, player: player.discard_card(1, 0),
+            lambda _, player: player.discard_card(1, 1),
+            lambda _, player: player.discard_card(1, 2),
+            lambda _, player: player.discard_card(1, 3),
+            lambda _, player: player.discard_card(2, 0),
+            lambda _, player: player.discard_card(2, 1),
+            lambda _, player: player.discard_card(2, 2),
+            lambda _, player: player.discard_card(2, 3),
+            lambda _, player: player.discard_card(3, 0),
+            lambda _, player: player.discard_card(3, 1),
+            lambda _, player: player.discard_card(3, 2),
+            lambda _, player: player.discard_card(3, 3),
+            lambda _, player: player.discard_card(4, 0),
+            lambda _, player: player.discard_card(4, 1),
+            lambda _, player: player.discard_card(4, 2),
+            lambda _, player: player.discard_card(4, 3),
+        ]
+
+        moves = dict(
+            (i, x) for i, x in enumerate(moves_list)
+        )
+
+        moves[action_id](self, self.players[player_id])
+
+    def reset(self):
+        self.__str__()
+
     def deal_cards(self):
         for n in range(20 if len(self.players) == 2 else 30):
             for player in self.players:
                 player.deal_stock_card(self.stock.pop())
-
-    def play_round(self):
-        # todo to be replaced by step
-        for player in self.players:
-            self.deal_player_cards(player)
-            player.play_round(self)
-
-        self.clear_play_fields()
 
     def is_game_finished(self):
         return any([p.is_finished() for p in self.players])
@@ -67,30 +141,8 @@ class SkipBoGame:
             if field.top_card == GameConfigs.max_card_value:
                 [self.discard_stock.push(field.pop()) for _ in range(GameConfigs.max_card_value)]
 
-    def step(self, player_id, action_id):
-        ...
-        # player plays stock card
-        # player plays hand card
-        # player discards card
-        moves = {
-            0: lambda game, player: player.play_stock_card(game, 0),
-            1: lambda game, player: player.play_stock_card(game, 1),
-            2: lambda game, player: player.play_stock_card(game, 2),
-            3: lambda game, player: player.play_stock_card(game, 3),
-        }
-        move_moves = {
-            0: lambda game, player: player.play_stock_card(game, 0),
-        }
-
-        moves[action_id](self, self.players[player_id])
-
-
     def last(self):
         ...
-
-    def observe(self):
-
-        return
 
     @staticmethod
     def possible_moves():
@@ -144,6 +196,10 @@ class Player:
     def hand_cards(self):
         return [card.value for card in self.hand]
 
+    @property
+    def discard_cards(self):
+        return [card.top_card for card in self.discard_piles]
+
     def deal_stock_card(self, card):
         self.stock.deal_push(card)
 
@@ -158,36 +214,14 @@ class Player:
     def is_finished(self):
         return len(self.stock) == 0
 
-    def play_round(self, game):
-        # todo: add moves AND/OR make human interface
-        # 1. add card from stock to field
-        for field in game.play_fields:
-            if self.stock.top_card in {field.accepts, "X"}:
-                field.push(self.stock.pop())
-
-        # 2. add card from hand to field
-        for card, field in itertools.product(self.hand, game.play_fields):
-            if card.value in {field.accepts, "X"}:
-                field.push(card.pop())
-
-        # 3. when hand is empty, take 5 new cards
-        # when build_pile is full, add to discard_stock
-
-        for card in self.hand:
-            if not card.is_empty():
-                self.discard_card(card.pop())
-                break
-        else:  # no break
-            print("player hand was empty")
-
-    def discard_card(self, hand_idx, pile_idx):
-        self.discard_piles[pile_idx].push(self.hand[hand_idx].pop())
-
     def play_stock_card(self, game, field_idx):
         game.play_fields[field_idx].push(self.stock.pop())
 
     def play_hand_card(self, game, hand_idx, field_idx):
         game.play_fields[field_idx].push(self.hand[hand_idx].pop())
+
+    def discard_card(self, hand_idx, pile_idx):
+        self.discard_piles[pile_idx].push(self.hand[hand_idx].pop())
 
 
 class GameStock:
