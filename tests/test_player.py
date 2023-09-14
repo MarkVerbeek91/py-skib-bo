@@ -2,8 +2,8 @@ import itertools
 
 import pytest
 
-from skip_bo.skip_bo import SkipBoGame
 from skip_bo.player import Player
+from skip_bo.skip_bo import SkipBoGame
 
 
 @pytest.fixture
@@ -30,10 +30,7 @@ def test_player_is_finished(player):
     assert player.is_finished()
 
 
-@pytest.mark.parametrize(
-    "field_idx",
-    list(range(4))
-)
+@pytest.mark.parametrize("field_idx", list(range(4)))
 def test_player_plays_stock_card(player, field_idx):
     player.deal_stock_card(2)
     player.deal_stock_card(1)

@@ -1,13 +1,14 @@
 from random import Random
 
-from skip_bo.erors import IllegalMove
+from skip_bo.errors import IllegalMove
 from skip_bo.settings import GameConfigs
 
 
 class GameStock:
-
     def __init__(self):
-        self.cards = [i + 1 for i in range(GameConfigs.max_card_value)] * 12 + ['X'] * 12
+        self.cards = [i + 1 for i in range(GameConfigs.max_card_value)] * 12 + [
+            "X"
+        ] * 12
 
     def __len__(self):
         return len(self.cards)

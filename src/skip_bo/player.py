@@ -1,6 +1,8 @@
+from skip_bo.errors import IllegalMove
 from skip_bo.settings import GameConfigs
-from skip_bo.stocks import PlayerStock, HandCard, DiscardPile
-from skip_bo.erors import IllegalMove
+from skip_bo.stocks import DiscardPile
+from skip_bo.stocks import HandCard
+from skip_bo.stocks import PlayerStock
 
 
 class Player:
@@ -8,7 +10,9 @@ class Player:
         self.name = name
         self.stock = PlayerStock()
         self.hand = [HandCard() for _ in range(GameConfigs.nr_hand_cards)]
-        self.discard_piles = [DiscardPile() for _ in range(GameConfigs.nr_discard_piles)]
+        self.discard_piles = [
+            DiscardPile() for _ in range(GameConfigs.nr_discard_piles)
+        ]
 
     def __str__(self):
         return f"Player {self.name}"

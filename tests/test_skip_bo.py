@@ -1,9 +1,10 @@
 import pytest
 
-from skip_bo.skip_bo import SkipBoGame
+from skip_bo.errors import IllegalMove
 from skip_bo.player import Player
-from skip_bo.stocks import GameStock, BuildPile
-from skip_bo.erors import IllegalMove
+from skip_bo.skip_bo import SkipBoGame
+from skip_bo.stocks import BuildPile
+from skip_bo.stocks import GameStock
 
 
 def test_create_a_game():
@@ -124,7 +125,7 @@ def test_legal_moves_for_set_up_field_02():
 
 @pytest.mark.parametrize(
     "action_id",
-    range(4)
+    range(4),
 )
 def test_game_makes_step_by_player_plays_stock_card(action_id):
     game = SkipBoGame(number_of_players=2)
@@ -143,7 +144,7 @@ def test_game_makes_step_by_player_plays_stock_card(action_id):
 
 @pytest.mark.parametrize(
     "action_id",
-    list(range(4, 4 + 20))
+    list(range(4, 4 + 20)),
 )
 def test_game_makes_step_by_player_plays_hand_card(action_id):
     game = SkipBoGame(number_of_players=2)
@@ -162,7 +163,7 @@ def test_game_makes_step_by_player_plays_hand_card(action_id):
 
 @pytest.mark.parametrize(
     "action_id",
-    list(range(4 + 20, 4 + 20 + 20))
+    list(range(4 + 20, 4 + 20 + 20)),
 )
 def test_game_makes_step_by_player_discards_card(action_id):
     game = SkipBoGame(number_of_players=2)

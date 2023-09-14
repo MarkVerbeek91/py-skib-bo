@@ -2,7 +2,9 @@ import itertools
 
 from skip_bo.player import Player
 from skip_bo.settings import GameConfigs
-from skip_bo.stocks import GameStock, BuildPile, DiscardPile
+from skip_bo.stocks import BuildPile
+from skip_bo.stocks import DiscardPile
+from skip_bo.stocks import GameStock
 
 
 class SkipBoGame:
@@ -35,10 +37,12 @@ class SkipBoGame:
         :return:
         """
         # current_index = self.
-        observation = [[self.players[agent].stock_card] +
-                       self.field_cards +
-                       self.players[agent].hand_cards +
-                       self.players[agent].discard_cards][0]
+        observation = [
+            [self.players[agent].stock_card]
+            + self.field_cards
+            + self.players[agent].hand_cards
+            + self.players[agent].discard_cards
+        ][0]
 
         return observation
 
@@ -94,9 +98,7 @@ class SkipBoGame:
             lambda _, player: player.discard_card(4, 3),
         ]
 
-        moves = dict(
-            (i, x) for i, x in enumerate(moves_list)
-        )
+        moves = dict((i, x) for i, x in enumerate(moves_list))
 
         moves[action_id](self, self.players[player_id])
 
@@ -126,14 +128,17 @@ class SkipBoGame:
     def clear_play_fields(self):
         for field in self.play_fields:
             if field.top_card == GameConfigs.max_card_value:
-                [self.discard_stock.push(field.pop()) for _ in range(GameConfigs.max_card_value)]
+                [
+                    self.discard_stock.push(field.pop())
+                    for _ in range(GameConfigs.max_card_value)
+                ]
 
     def last(self):
         ...
 
     @staticmethod
     def possible_moves():
-        """ Possible moves:
+        """Possible moves:
 
         1. from player stock to one of the field piles (4 moves)
         2. from player hand to one of the field piles (5*4 moves)
@@ -153,14 +158,16 @@ class SkipBoGame:
         :return:
         """
         legal_moves = self.possible_moves()
-        for i, combi in enumerate([
-            *itertools.product([player.stock_card], self.play_fields),
-            *itertools.product(player.hand_cards, self.play_fields)
-        ]):
+        for i, combi in enumerate(
+            [
+                *itertools.product([player.stock_card], self.play_fields),
+                *itertools.product(player.hand_cards, self.play_fields),
+            ]
+        ):
             if combi[0] == combi[1].accepts or combi[0] == "X":
                 legal_moves[i] = 1
 
-        for i in range(len(legal_moves)-20, len(legal_moves)):
+        for i in range(len(legal_moves) - 20, len(legal_moves)):
             legal_moves[i] = 1  # discard to this pile is always allowed.
 
         return legal_moves

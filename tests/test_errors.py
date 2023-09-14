@@ -1,4 +1,4 @@
-from skip_bo.erors import IllegalMove
+from skip_bo.errors import IllegalMove
 
 
 def test_illegal_move_is_exception():
