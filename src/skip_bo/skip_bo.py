@@ -2,8 +2,6 @@ import dataclasses
 import itertools
 from random import Random
 
-import numpy as np
-
 
 @dataclasses.dataclass
 class GameConfigs:
@@ -46,12 +44,10 @@ class SkipBoGame:
         :return:
         """
         # current_index = self.
-        observation = np.array(
-          [self.players[agent].stock_card] +
-          self.field_cards +
-          self.players[agent].hand_cards +
-          self.players[agent].discard_cards
-        )
+        observation = [self.players[agent].stock_card +
+                       self.field_cards +
+                       self.players[agent].hand_cards +
+                       self.players[agent].discard_cards]
 
         return observation
 
@@ -154,7 +150,7 @@ class SkipBoGame:
 
         :return:
         """
-        return np.zeros(4 + 5 * 4 + 5 * 4, "int8")
+        return [0] * (4 + 5 * 4 + 5 * 4)
 
     def legal_moves(self, player):
         """
