@@ -1,11 +1,13 @@
-import numpy as np
 import pytest
 
-from skip_bo.skip_bo import SkipBoGame, GameStock, BuildPile, Player, IllegalMove
+from skip_bo.skip_bo import SkipBoGame
+from skip_bo.player import Player
+from skip_bo.stocks import GameStock, BuildPile
+from skip_bo.erors import IllegalMove
 
 
 def test_create_a_game():
-    SkipBoGame()
+    assert str(SkipBoGame()) == "Skip-Bo game"
 
 
 def test_number_of_cards_in_game_stock():
@@ -175,3 +177,9 @@ def test_game_makes_step_by_player_discards_card(action_id):
 
     expected_result = [0 if i != (action_id % 4) else 1 for i in range(4)]
     assert player_01.discard_cards == expected_result
+
+
+def test_game_is_kind_off_observable():
+    game = SkipBoGame()
+    game.start()
+    assert len(game.observe(1)) == 14

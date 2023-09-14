@@ -2,7 +2,8 @@ import itertools
 
 import pytest
 
-from skip_bo.skip_bo import Player, SkipBoGame
+from skip_bo.skip_bo import SkipBoGame
+from skip_bo.player import Player
 
 
 @pytest.fixture
