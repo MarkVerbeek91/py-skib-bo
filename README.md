@@ -5,7 +5,9 @@
 
 ## Features
 
-- TODO
+- Play a game of skibbo using the command line.
+- Play against a computer opponent.
+- Play against a human opponent.
 
 ## Installation
 
@@ -14,6 +16,12 @@ You can install _Skib-Bo_ via [pip] from [PyPI]:
 ```console
 $ pip install py-skip-bo
 ```
+
+## Todo
+
+- [ ] Type annotations for mypy
+- [ ] refactor stocks to a submodule
+- [ ] convert a 'card' to a class with a value and a color
 
 ## License
 

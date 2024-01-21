@@ -31,20 +31,20 @@ class PlayerStock:
     def __init__(self):
         self.cards = []
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Player stock with {len(self.cards)} cards."
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.cards)
 
     @property
-    def top_card(self):
+    def top_card(self) -> int:
         return self.cards[-1]
 
-    def pop(self):
+    def pop(self) -> int:
         return self.cards.pop()
 
-    def deal_push(self, card):
+    def deal_push(self, card) -> None:
         self.cards.append(card)
 
 

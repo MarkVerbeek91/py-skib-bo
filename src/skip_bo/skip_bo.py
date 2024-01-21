@@ -8,13 +8,13 @@ from skip_bo.stocks import GameStock
 
 
 class SkipBoGame:
-    def __init__(self, number_of_players=2):
+    def __init__(self, number_of_players: int = 2):
         self.stock = GameStock()
         self.discard_stock = DiscardPile()
         self.play_fields = [BuildPile() for _ in range(GameConfigs.nr_play_field)]
         self.players = [Player(str(i)) for i in range(number_of_players)]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Skip-Bo game"
 
     @property
@@ -24,86 +24,6 @@ class SkipBoGame:
     def start(self):
         self.stock.shuffle()
         self.deal_cards()
-
-    def observe(self, agent):
-        """
-
-        1. top stock card
-        2. cards on play fields
-        3. cards in player hand
-        4. cards on top of discard pile (extension possible for top 3, 4 or 6)
-
-        :param agent:
-        :return:
-        """
-        # current_index = self.
-        observation = [
-            [self.players[agent].stock_card]
-            + self.field_cards
-            + self.players[agent].hand_cards
-            + self.players[agent].discard_cards
-        ][0]
-
-        return observation
-
-    def step(self, player_id, action_id):
-        ...
-        # player plays stock card
-        # player plays hand card
-        # player discards card
-        moves_list = [
-            lambda game, player: player.play_stock_card(game, 0),
-            lambda game, player: player.play_stock_card(game, 1),
-            lambda game, player: player.play_stock_card(game, 2),
-            lambda game, player: player.play_stock_card(game, 3),
-            lambda game, player: player.play_hand_card(game, 0, 0),
-            lambda game, player: player.play_hand_card(game, 0, 1),
-            lambda game, player: player.play_hand_card(game, 0, 2),
-            lambda game, player: player.play_hand_card(game, 0, 3),
-            lambda game, player: player.play_hand_card(game, 1, 0),
-            lambda game, player: player.play_hand_card(game, 1, 1),
-            lambda game, player: player.play_hand_card(game, 1, 2),
-            lambda game, player: player.play_hand_card(game, 1, 3),
-            lambda game, player: player.play_hand_card(game, 2, 0),
-            lambda game, player: player.play_hand_card(game, 2, 1),
-            lambda game, player: player.play_hand_card(game, 2, 2),
-            lambda game, player: player.play_hand_card(game, 2, 3),
-            lambda game, player: player.play_hand_card(game, 3, 0),
-            lambda game, player: player.play_hand_card(game, 3, 1),
-            lambda game, player: player.play_hand_card(game, 3, 2),
-            lambda game, player: player.play_hand_card(game, 3, 3),
-            lambda game, player: player.play_hand_card(game, 4, 0),
-            lambda game, player: player.play_hand_card(game, 4, 1),
-            lambda game, player: player.play_hand_card(game, 4, 2),
-            lambda game, player: player.play_hand_card(game, 4, 3),
-            lambda _, player: player.discard_card(0, 0),
-            lambda _, player: player.discard_card(0, 1),
-            lambda _, player: player.discard_card(0, 2),
-            lambda _, player: player.discard_card(0, 3),
-            lambda _, player: player.discard_card(1, 0),
-            lambda _, player: player.discard_card(1, 1),
-            lambda _, player: player.discard_card(1, 2),
-            lambda _, player: player.discard_card(1, 3),
-            lambda _, player: player.discard_card(2, 0),
-            lambda _, player: player.discard_card(2, 1),
-            lambda _, player: player.discard_card(2, 2),
-            lambda _, player: player.discard_card(2, 3),
-            lambda _, player: player.discard_card(3, 0),
-            lambda _, player: player.discard_card(3, 1),
-            lambda _, player: player.discard_card(3, 2),
-            lambda _, player: player.discard_card(3, 3),
-            lambda _, player: player.discard_card(4, 0),
-            lambda _, player: player.discard_card(4, 1),
-            lambda _, player: player.discard_card(4, 2),
-            lambda _, player: player.discard_card(4, 3),
-        ]
-
-        moves = dict((i, x) for i, x in enumerate(moves_list))
-
-        moves[action_id](self, self.players[player_id])
-
-    def reset(self):
-        self.__str__()
 
     def deal_cards(self):
         for n in range(20 if len(self.players) == 2 else 30):
